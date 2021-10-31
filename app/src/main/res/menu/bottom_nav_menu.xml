@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_today"
+        android:icon="@drawable/today_ic"
+        android:title="@string/today" />
+
+    <item
+        android:id="@+id/navigation_seven_days"
+        android:icon="@drawable/week_ic"
+        android:title="@string/_7_days" />
+
+    <item
+        android:id="@+id/navigation_search"
+        android:icon="@drawable/search_ic"
+        android:title="@string/search" />
+
+</menu>

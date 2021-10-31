@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_today">
+
+    <fragment
+        android:id="@+id/navigation_today"
+        android:name="com.example.myapplication.ui.today.TodayFragment"
+        android:label="@string/today"
+        tools:layout="@layout/fragment_today">
+        <action
+            android:id="@+id/action_navigation_today_to_navigation_seven_days"
+            app:destination="@id/navigation_seven_days" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_seven_days"
+        android:name="com.example.myapplication.ui.seven_days.SevenDaysFragment"
+        android:label="@string/_7_days"
+        tools:layout="@layout/fragment_seven_days">
+        <action
+            android:id="@+id/action_navigation_seven_days_to_navigation_search"
+            app:destination="@id/navigation_search" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_search"
+        android:name="com.example.myapplication.ui.search.SearchFragment"
+        android:label="@string/search"
+        tools:layout="@layout/fragment_search" />
+</navigation>
