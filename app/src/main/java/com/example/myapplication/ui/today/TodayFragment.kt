@@ -26,10 +26,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class TodayFragment : Fragment() {
-    //TODO add search for specific city
-    //TODO add loading cycle before showing weather
-    //TODO extract weathers into viewModel
-
     val API = "7b7ebabc7f47bb63c0d5dc37e076bc8a"
 
     private lateinit var dashboardViewModel: TodayViewModel
@@ -102,7 +98,7 @@ class TodayFragment : Fragment() {
                             "&units=metric&appid=${API}&lang=ru")
                     .readText(Charsets.UTF_8)
             } catch (e: Exception){
-                Log.d("MAIN", "doInBackground "+e.message.toString())
+                Log.d("MAIN", "doInBackground today "+e.message.toString())
                 null
             }
             return response

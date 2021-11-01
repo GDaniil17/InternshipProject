@@ -52,13 +52,13 @@ class SevenDaysFragment : Fragment() {
                 progressBar?.visibility = View.GONE
             }
             recyclerView?.let {
-                it.layoutManager = LinearLayoutManager(context)
                 sevenDaysViewModel.getWeekWeather().value?.let { weekWeather ->
                     it.adapter = RecyclerAdapter(weekWeather)
                 }
             }
         } else {
             sevenDaysViewModel.getWeekWeather().observeForever {
+                Log.d("MAIN", "sevenDaysViewModel.getWeekWeather().observeForever")
                 recyclerView?.let {
                     it.layoutManager = LinearLayoutManager(context)
                     sevenDaysViewModel.getWeekWeather().value?.let { weekWeather ->
@@ -86,7 +86,7 @@ class SevenDaysFragment : Fragment() {
                 URL("https://api.openweathermap.org/data/2.5/onecall?lat=${mainActivityViewModel.getLonLat().value?.second}&lon=${mainActivityViewModel.getLonLat().value?.first}&exclude=hourly,minutely&units=metric&appid=${API}&lang=ru")
                     .readText(Charsets.UTF_8)
             } catch (e: Exception){
-                Log.d("MAIN", "doInBackground "+e.message.toString())
+                Log.d("MAIN", "doInBackground 7 "+e.message.toString())
                 null
             }
             return response

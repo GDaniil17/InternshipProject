@@ -20,6 +20,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:textColor="@color/white"
+            android:textColorHint="#B3A8A8"
             android:hint="@string/enter_city_in_english"
             android:textStyle="bold"
             android:maxLines="1"

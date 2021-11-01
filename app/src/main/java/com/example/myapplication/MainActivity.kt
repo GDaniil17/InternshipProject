@@ -57,8 +57,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             locationListener = object : LocationListener {
                 override fun onLocationChanged(location: Location) {
-                    mainActivityViewModel.setLonLat(location.longitude, location.latitude)
-                    Log.d("MAIN", "${location.latitude} ${location.longitude}")
+                    if (mainActivityViewModel.getLonLat().value == null) {
+                        mainActivityViewModel.setLonLat(location.longitude, location.latitude)
+                        Log.d("MAIN", "${location.latitude} ${location.longitude}")
+                    }
                 }
             }
 

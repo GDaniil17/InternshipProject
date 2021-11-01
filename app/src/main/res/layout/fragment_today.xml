@@ -17,10 +17,12 @@
 
     <LinearLayout
         android:id="@+id/info_layout"
-        android:layout_width="220dp"
-        android:layout_height="313dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="#CFCFCF"
         android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,7 +35,7 @@
             android:paddingLeft="20dp"
             android:text="-"
             android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
 
         <TextView
