@@ -1,7 +1,10 @@
 package com.example.myapplication.ui.search
 
+import android.annotation.SuppressLint
 import android.os.AsyncTask
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,8 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.myapplication.R
 import com.example.myapplication.databinding.FragmentSearchBinding
 import com.example.myapplication.ui.MainActivityViewModel
-import com.example.myapplication.ui.seven_days.SevenDaysViewModel
-import com.example.myapplication.ui.seven_days.WeekWeatherData
+import com.example.myapplication.ui.today.API
 import com.example.myapplication.ui.today.CurrentWeatherData
 import com.example.myapplication.ui.today.TodayViewModel
 import com.google.android.material.textfield.TextInputEditText
@@ -25,24 +27,21 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class SearchFragment : Fragment() {
-
-    val API = "7b7ebabc7f47bb63c0d5dc37e076bc8a"
-
     private lateinit var searchViewModel: SearchViewModel
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
     private var searchBtn: ImageButton? = null
     private var textInputEditText: TextInputEditText? = null
     private val todayViewModel by activityViewModels<TodayViewModel>()
-    private val sevenDaysViewModel by activityViewModels<SevenDaysViewModel>()
     private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
+    private val searchFragmentViewModel by activityViewModels<SearchViewModel>()
     private var city: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         searchViewModel =
             ViewModelProvider(this).get(SearchViewModel::class.java)
 
@@ -50,25 +49,45 @@ class SearchFragment : Fragment() {
         val root = binding.root
         searchBtn = root.findViewById(R.id.search_btn)
         textInputEditText = root.findViewById(R.id.textInputEditText)
+        if (searchFragmentViewModel.searchValue.isNotBlank()) {
+            textInputEditText?.setText(searchFragmentViewModel.searchValue)
+        }
+        textInputEditText?.addTextChangedListener (object: TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                searchFragmentViewModel.searchValue = s.toString()
+            }
+        })
+
+
         searchBtn?.setOnClickListener {
             city = textInputEditText?.text.toString()
-            weatherTaskToday().execute()
+            WeatherTaskToday().execute()
         }
         return root
     }
 
-    inner class weatherTaskToday(): AsyncTask<String, Void, String>(){
+    @SuppressLint("StaticFieldLeak")
+    inner class WeatherTaskToday(): AsyncTask<String, Void, String>(){
         override fun doInBackground(vararg params: String?): String? {
             val response = try {
                 URL("https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API}&lang=ru")
                     .readText(Charsets.UTF_8)
             } catch (e: Exception){
-                Log.d("MAIN", "doInBackground search today "+e.message.toString())
+                Log.d("MAIN", "doInBackground "+e.message.toString())
                 null
             }
             return response
         }
 
+        @SuppressLint("SimpleDateFormat")
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
             result?.let {

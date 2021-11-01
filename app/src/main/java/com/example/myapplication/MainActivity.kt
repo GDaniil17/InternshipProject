@@ -41,8 +41,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             initialize()
             locationListener?.let { listener ->
-                locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                    0, 0f, listener as LocationListener)
+                locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, listener)
+            }
+            locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let {
+                mainActivityViewModel.setLonLat(it.longitude, it.latitude)
             }
         }
     }
@@ -52,7 +54,6 @@ class MainActivity : AppCompatActivity() {
         if (locationManager == null || (locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == false
                     || locationManager?.isProviderEnabled(LocationManager.NETWORK_PROVIDER) == false)) {
             Log.d("MAIN", "Turn on location and restart the app")
-
             Toast.makeText(applicationContext, "Turn on location and restart the app", Toast.LENGTH_LONG).show()
         } else {
             locationListener = object : LocationListener {
@@ -63,7 +64,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
             val navView: BottomNavigationView = binding.navView

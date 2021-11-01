@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.seven_days
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,6 +31,7 @@ class RecyclerAdapter(private val items: MutableList<WeekWeatherData>): Recycler
         return ViewHolder(v)
     }
 
+    @SuppressLint("SimpleDateFormat", "SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         items[position].let {
             holder.minTemp.text = "Min: ${it.minTemp.toString()}°С"

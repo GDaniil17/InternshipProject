@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.today
 
+import android.annotation.SuppressLint
 import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Handler
@@ -25,8 +26,9 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 
+const val API = "acc242807675465120368b3b20bb81d1"
+
 class TodayFragment : Fragment() {
-    val API = "7b7ebabc7f47bb63c0d5dc37e076bc8a"
 
     private lateinit var dashboardViewModel: TodayViewModel
     private var _binding: FragmentTodayBinding? = null
@@ -48,7 +50,7 @@ class TodayFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         dashboardViewModel =
             ViewModelProvider(this).get(TodayViewModel::class.java)
 
@@ -76,14 +78,14 @@ class TodayFragment : Fragment() {
             }
             mainActivityViewModel.getLonLat().observeForever {
                 if (todayViewModel.getTodayWeather().value == null) {
-                    weatherTask().execute()
+                    WeatherTask().execute()
                 }
             }
         }
         return root
     }
 
-    inner class weatherTask(): AsyncTask<String, Void, String>(){
+    inner class WeatherTask(): AsyncTask<String, Void, String>(){
         override fun doInBackground(vararg params: String?): String? {
             mainHandler.post {
                 infoLayout?.visibility = View.GONE
@@ -91,19 +93,20 @@ class TodayFragment : Fragment() {
             }
             Log.d("MAIN", "https://api.openweathermap.org/data/2.5/weather?lat=" +
                     "${mainActivityViewModel.getLonLat().value?.second}&lon=${mainActivityViewModel.getLonLat().value?.first}" +
-                    "&units=metric&appid=${API}&lang=ru")
+                        "&units=metric&appid=${API}&lang=ru")
             val response = try {
                 URL("https://api.openweathermap.org/data/2.5/weather?lat=" +
                         "${mainActivityViewModel.getLonLat().value?.second}&lon=${mainActivityViewModel.getLonLat().value?.first}" +
                             "&units=metric&appid=${API}&lang=ru")
                     .readText(Charsets.UTF_8)
             } catch (e: Exception){
-                Log.d("MAIN", "doInBackground today "+e.message.toString())
+                Log.d("MAIN", "doInBackground "+e.message.toString())
                 null
             }
             return response
         }
 
+        @SuppressLint("SimpleDateFormat")
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
             result?.let {

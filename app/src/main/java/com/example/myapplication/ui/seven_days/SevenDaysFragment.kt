@@ -11,21 +11,20 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.databinding.FragmentSevenDaysBinding
 import com.example.myapplication.ui.MainActivityViewModel
+import com.example.myapplication.ui.today.API
 import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
 
 class SevenDaysFragment : Fragment() {
-
-    val API = "7b7ebabc7f47bb63c0d5dc37e076bc8a"
-
-    private lateinit var sevenDaysViewModel: SevenDaysViewModel
+    
+    private val sevenDaysViewModel by viewModels<SevenDaysViewModel>()
     private var _binding: FragmentSevenDaysBinding? = null
     private val binding get() = _binding!!
     private var recyclerView: RecyclerView? = null
@@ -37,10 +36,7 @@ class SevenDaysFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        sevenDaysViewModel =
-            ViewModelProvider(this).get(SevenDaysViewModel::class.java)
-
+    ): View {
         _binding = FragmentSevenDaysBinding.inflate(inflater, container, false)
         val root: View = binding.root
         progressBar = root.findViewById(R.id.progressbar_week)
@@ -52,13 +48,13 @@ class SevenDaysFragment : Fragment() {
                 progressBar?.visibility = View.GONE
             }
             recyclerView?.let {
+                it.layoutManager = LinearLayoutManager(context)
                 sevenDaysViewModel.getWeekWeather().value?.let { weekWeather ->
                     it.adapter = RecyclerAdapter(weekWeather)
                 }
             }
         } else {
             sevenDaysViewModel.getWeekWeather().observeForever {
-                Log.d("MAIN", "sevenDaysViewModel.getWeekWeather().observeForever")
                 recyclerView?.let {
                     it.layoutManager = LinearLayoutManager(context)
                     sevenDaysViewModel.getWeekWeather().value?.let { weekWeather ->
@@ -67,15 +63,16 @@ class SevenDaysFragment : Fragment() {
                 }
             }
             mainActivityViewModel.getLonLat().observeForever {
+                Log.d("MAIN", mainActivityViewModel.getLonLat().toString())
                 if (sevenDaysViewModel.getWeekWeather().value == null) {
-                    weatherTask().execute()
+                    WeatherTask().execute()
                 }
             }
         }
         return root
     }
 
-    inner class weatherTask(): AsyncTask<String, Void, String>(){
+    inner class WeatherTask(): AsyncTask<String, Void, String>(){
         override fun doInBackground(vararg params: String?): String? {
 
             mainHandler.post {
@@ -83,10 +80,12 @@ class SevenDaysFragment : Fragment() {
                 recyclerView?.visibility = View.GONE
             }
             val response = try {
-                URL("https://api.openweathermap.org/data/2.5/onecall?lat=${mainActivityViewModel.getLonLat().value?.second}&lon=${mainActivityViewModel.getLonLat().value?.first}&exclude=hourly,minutely&units=metric&appid=${API}&lang=ru")
+                URL("https://api.openweathermap.org/data/2.5/onecall?lat=${mainActivityViewModel
+                    .getLonLat().value?.second}&lon=${mainActivityViewModel.getLonLat().value?.first}" +
+                        "&exclude=hourly,minutely&units=metric&appid=${API}&lang=ru")
                     .readText(Charsets.UTF_8)
             } catch (e: Exception){
-                Log.d("MAIN", "doInBackground 7 "+e.message.toString())
+                Log.d("MAIN", "doInBackground "+e.message.toString())
                 null
             }
             return response
