@@ -8,7 +8,6 @@ class MainActivityViewModel: ViewModel() {
 
     fun getLonLat() = lonLat
     fun setLonLat(longitude: Double, latitude: Double) {
-
         lonLat.postValue(Pair(longitude, latitude))
     }
 }

@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.databinding.FragmentSevenDaysBinding
 import com.example.myapplication.ui.MainActivityViewModel
-import com.example.myapplication.ui.today.TodayViewModel
 import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
@@ -47,20 +46,28 @@ class SevenDaysFragment : Fragment() {
         progressBar = root.findViewById(R.id.progressbar_week)
         recyclerView = root.findViewById(R.id.weather_recyclerView)
 
-        if (sevenDaysViewModel.getWeekWeather() != null) {
+        if (sevenDaysViewModel.getWeekWeather().value != null) {
             mainHandler.post {
                 recyclerView?.visibility = View.VISIBLE
                 progressBar?.visibility = View.GONE
             }
             recyclerView?.let {
                 it.layoutManager = LinearLayoutManager(context)
-                sevenDaysViewModel.getWeekWeather()?.let { weekWeather ->
+                sevenDaysViewModel.getWeekWeather().value?.let { weekWeather ->
                     it.adapter = RecyclerAdapter(weekWeather)
                 }
             }
         } else {
+            sevenDaysViewModel.getWeekWeather().observeForever {
+                recyclerView?.let {
+                    it.layoutManager = LinearLayoutManager(context)
+                    sevenDaysViewModel.getWeekWeather().value?.let { weekWeather ->
+                        it.adapter = RecyclerAdapter(weekWeather)
+                    }
+                }
+            }
             mainActivityViewModel.getLonLat().observeForever {
-                if (sevenDaysViewModel.getWeekWeather() == null) {
+                if (sevenDaysViewModel.getWeekWeather().value == null) {
                     weatherTask().execute()
                 }
             }
@@ -112,10 +119,6 @@ class SevenDaysFragment : Fragment() {
                         }
                     }
                     sevenDaysViewModel.setWeekWeather(weatherList)
-                    recyclerView?.let {
-                        it.layoutManager = LinearLayoutManager(context)
-                        it.adapter = RecyclerAdapter(weatherList)
-                    }
 
                 } catch (e: Exception) {
                     Log.d("MAIN", "onPostExecute "+e.message.toString())

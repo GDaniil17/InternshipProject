@@ -7,6 +7,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.viewModels
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
@@ -39,31 +40,41 @@ class MainActivity : AppCompatActivity() {
                 ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 42)
         } else {
             initialize()
-            locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                0,0f, locationListener as LocationListener)
+            locationListener?.let { listener ->
+                locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    0, 0f, listener as LocationListener)
+            }
         }
     }
 
     private fun initialize() {
         locationManager = this.getSystemService(LOCATION_SERVICE) as LocationManager
-        locationListener = object : LocationListener {
-            override fun onLocationChanged(location: Location) {
-                mainActivityViewModel.setLonLat(location.longitude, location.latitude)
-                Log.d("MAIN", "${location.latitude} ${location.longitude}")
-            }
-        }
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        val navView: BottomNavigationView = binding.navView
+        if (locationManager == null || (locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == false
+                    || locationManager?.isProviderEnabled(LocationManager.NETWORK_PROVIDER) == false)) {
+            Log.d("MAIN", "Turn on location and restart the app")
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_today, R.id.navigation_seven_days, R.id.navigation_search
+            Toast.makeText(applicationContext, "Turn on location and restart the app", Toast.LENGTH_LONG).show()
+        } else {
+            locationListener = object : LocationListener {
+                override fun onLocationChanged(location: Location) {
+                    mainActivityViewModel.setLonLat(location.longitude, location.latitude)
+                    Log.d("MAIN", "${location.latitude} ${location.longitude}")
+                }
+            }
+
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            val navView: BottomNavigationView = binding.navView
+
+            val navController = findNavController(R.id.nav_host_fragment_activity_main)
+            val appBarConfiguration = AppBarConfiguration(
+                setOf(
+                    R.id.navigation_today, R.id.navigation_seven_days, R.id.navigation_search
+                )
             )
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+            setupActionBarWithNavController(navController, appBarConfiguration)
+            navView.setupWithNavController(navController)
+        }
     }
 
     override fun onRequestPermissionsResult(

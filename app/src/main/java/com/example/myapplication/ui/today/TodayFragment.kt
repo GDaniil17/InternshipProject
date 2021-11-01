@@ -41,6 +41,7 @@ class TodayFragment : Fragment() {
     var descriptionView: TextView? = null
     var day: TextView? = null
     var img: ImageView? = null
+    var city: TextView? = null
     var progressBar: ProgressBar? = null
     var infoLayout: LinearLayout? = null
     private var mainHandler: Handler = Handler(Looper.getMainLooper())
@@ -65,16 +66,20 @@ class TodayFragment : Fragment() {
         img = root.findViewById(R.id.weather_img_today)
         progressBar = root.findViewById(R.id.progressbar_today)
         infoLayout = root.findViewById(R.id.info_layout)
+        city = root.findViewById(R.id.city)
 
-        if (todayViewModel.getTodayWeather() != null) {
+        if (todayViewModel.getTodayWeather().value != null) {
             mainHandler.post {
                 infoLayout?.visibility = View.VISIBLE
                 progressBar?.visibility = View.GONE
             }
-            todayViewModel.getTodayWeather()?.let { showWeatherData(it) }
+            todayViewModel.getTodayWeather().value?.let { showWeatherData(it) }
         } else {
+            todayViewModel.getTodayWeather().observeForever {
+                todayViewModel.getTodayWeather().value?.let { showWeatherData(it) }
+            }
             mainActivityViewModel.getLonLat().observeForever {
-                if (todayViewModel.getTodayWeather() == null) {
+                if (todayViewModel.getTodayWeather().value == null) {
                     weatherTask().execute()
                 }
             }
@@ -88,6 +93,9 @@ class TodayFragment : Fragment() {
                 infoLayout?.visibility = View.GONE
                 progressBar?.visibility = View.VISIBLE
             }
+            Log.d("MAIN", "https://api.openweathermap.org/data/2.5/weather?lat=" +
+                    "${mainActivityViewModel.getLonLat().value?.second}&lon=${mainActivityViewModel.getLonLat().value?.first}" +
+                    "&units=metric&appid=${API}&lang=ru")
             val response = try {
                 URL("https://api.openweathermap.org/data/2.5/weather?lat=" +
                         "${mainActivityViewModel.getLonLat().value?.second}&lon=${mainActivityViewModel.getLonLat().value?.first}" +
@@ -110,18 +118,21 @@ class TodayFragment : Fragment() {
                     }
                     val jsonObj = JSONObject(result)
                     val main = jsonObj.getJSONObject("main")
+                    val city = jsonObj.getString("name")
+                    val coord = jsonObj.getJSONObject("coord")
+                    val lon = coord.getString("lon")
+                    val lat = coord.getString("lat")
                     val weather = jsonObj.getJSONArray("weather").getJSONObject(0)
                     val description = weather.getString("description")
                     val temp = "Now: "+main.getString("temp")+"°С"
                     val tempMin = "Min: "+main.getString("temp_min")+"°С"
                     val tempMax = "Max: "+main.getString("temp_max")+"°С"
-
                     val pictureLink = "http://openweathermap.org/img/wn/${weather.getString("icon")}@2x.png"
                     val sdf = SimpleDateFormat("dd/MM/yyyy")
                     val netDate = Date(jsonObj.getString("dt").toLong() * 1000)
                     todayViewModel.setTodayWeather(CurrentWeatherData(sdf.format(netDate),
-                        temp, tempMin, tempMax, description, pictureLink))
-                    todayViewModel.getTodayWeather()?.let { showWeatherData(it) }
+                        temp, tempMin, tempMax, description, pictureLink, lon,lat, city))
+                    todayViewModel.getTodayWeather().value?.let { showWeatherData(it) }
                 } catch (e: Exception) {
                     Log.d("MAIN", "onPostExecute "+e.message.toString())
                 }
@@ -142,6 +153,7 @@ class TodayFragment : Fragment() {
             }
         }
         day?.text = newWeatherData.day
+        city?.text = newWeatherData.city
     }
 
     override fun onDestroyView() {

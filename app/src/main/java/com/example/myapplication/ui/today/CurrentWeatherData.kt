@@ -6,5 +6,8 @@ data class CurrentWeatherData(
     val min: String,
     val max: String,
     val description: String,
-    val pictureLink: String
+    val pictureLink: String,
+    val longitude: String,
+    val latitude: String,
+    val city: String
 )

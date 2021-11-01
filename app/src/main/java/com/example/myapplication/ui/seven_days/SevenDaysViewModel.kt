@@ -1,12 +1,13 @@
 package com.example.myapplication.ui.seven_days
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class SevenDaysViewModel : ViewModel() {
-    private var weekWeather: MutableList<WeekWeatherData>? = null
+    private var weekWeather = MutableLiveData<MutableList<WeekWeatherData>>()
 
     fun getWeekWeather() = weekWeather
     fun setWeekWeather(newWeatherCast: MutableList<WeekWeatherData>) {
-        weekWeather = newWeatherCast
+        weekWeather.postValue(newWeatherCast)
     }
 }
