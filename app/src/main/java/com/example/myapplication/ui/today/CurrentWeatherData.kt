@@ -1,9 +1,10 @@
 package com.example.myapplication.ui.today
 
 data class CurrentWeatherData(
-    val day: Long,
-    val temp: Float,
-    val min: Float,
-    val max: Float,
-    val description: String
+    val day: String,
+    val temp: String,
+    val min: String,
+    val max: String,
+    val description: String,
+    val pictureLink: String
 )

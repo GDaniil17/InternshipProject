@@ -6,12 +6,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
 import com.example.myapplication.R
 import com.example.myapplication.databinding.FragmentTodayBinding
+import com.example.myapplication.ui.MainActivityViewModel
 import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
@@ -35,6 +38,9 @@ class TodayFragment : Fragment() {
     var maxTemp: TextView? = null
     var descriptionView: TextView? = null
     var day: TextView? = null
+    var img: ImageView? = null
+    private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
+    private val todayViewModel by activityViewModels<TodayViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,7 +57,12 @@ class TodayFragment : Fragment() {
         maxTemp = root.findViewById(R.id.maxTemp)
         descriptionView = root.findViewById(R.id.description)
         day = root.findViewById(R.id.day)
-        weatherTast().execute()
+        img = root.findViewById(R.id.weather_img_today)
+
+        mainActivityViewModel.getLonLat().observeForever {
+            weatherTast().execute()
+            Log.d("MAIN", "mainActivityViewModel today ${mainActivityViewModel.getLonLat().value}")
+        }
         return root
     }
 
@@ -71,7 +82,6 @@ class TodayFragment : Fragment() {
             super.onPostExecute(result)
             result?.let {
                 try {
-                    val root = binding.root
                     Log.d("MAIN", "OK")
                     val jsonObj = JSONObject(result)
                     val main = jsonObj.getJSONObject("main")
@@ -81,20 +91,32 @@ class TodayFragment : Fragment() {
                     val tempMin = "Min: "+main.getString("temp_min")+"°С"
                     val tempMax = "Max: "+main.getString("temp_max")+"°С"
 
-                    descriptionView?.text = description
-                    currentTemp?.text = temp
-                    minTemp?.text = tempMin
-                    maxTemp?.text = tempMax
-
+                    val pictureLink = "http://openweathermap.org/img/wn/${weather.getString("icon")}@2x.png"
                     val sdf = SimpleDateFormat("dd/MM/yyyy")
                     val netDate = Date(jsonObj.getString("dt").toLong() * 1000)
-                    day?.text = sdf.format(netDate)
+                    todayViewModel.setTodayWeather(CurrentWeatherData(sdf.format(netDate),
+                        temp, tempMin, tempMax, description, pictureLink))
+                    todayViewModel.getTodayWeather()?.let { showWeatherData(it) }
                 } catch (e: Exception) {
                     Log.d("MAIN", e.message.toString())
-                    Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
                 }
             }
         }
+    }
+
+    fun showWeatherData(newWeatherData: CurrentWeatherData) {
+        descriptionView?.text = newWeatherData.description
+        currentTemp?.text = newWeatherData.temp
+        minTemp?.text = newWeatherData.min
+        maxTemp?.text = newWeatherData.max
+        //val root = binding.root
+        //root.context
+        context?.let { context ->
+            img?.let { imgView ->
+                Glide.with(context).load(newWeatherData.pictureLink).into(imgView)
+            }
+        }
+        day?.text = newWeatherData.day
     }
 
     override fun onDestroyView() {

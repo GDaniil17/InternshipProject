@@ -8,5 +8,6 @@ data class WeekWeatherData(
     val eveningTemp: Float,
     val nightTemp: Float,
     val description: String,
-    val day: Long
+    val day: Long,
+    val img: String
 )

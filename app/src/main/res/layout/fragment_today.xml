@@ -8,8 +8,8 @@
 
     <LinearLayout
         android:id="@+id/info_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="220dp"
+        android:layout_height="313dp"
         android:background="#CFCFCF"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="20dp"
-            android:text="31 October"
+            android:text="-"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -31,7 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="20dp"
-            android:text="Weather is clear"
+            android:text="-"
             android:textSize="20sp"
             android:textStyle="italic" />
 
@@ -47,34 +47,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingEnd="10dp"
-                android:textSize="20sp"
-                android:text="Max: 100" />
+                android:text="-"
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/minTemp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingBottom="10dp"
-                android:textSize="20sp"
-                android:text="Min: 20" />
+                android:text="-"
+                android:textSize="20sp" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/currentTemp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingLeft="20dp">
+            android:paddingLeft="20dp"
+            android:paddingBottom="10dp"
+            android:text="-"
+            android:textSize="20sp" />
 
-            <TextView
-                android:id="@+id/currentTemp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingBottom="10dp"
-                android:textSize="20sp"
-                android:text="Morning: 100" />
+        <ImageView
+            android:id="@+id/weather_img_today"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:src="@drawable/image_ic" />
 
-        </LinearLayout>
 
     </LinearLayout>
 

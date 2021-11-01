@@ -5,12 +5,8 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.os.AsyncTask
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.viewModels
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
@@ -22,13 +18,8 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.ui.MainActivityViewModel
-import com.example.myapplication.ui.seven_days.WeekWeatherData
-import com.example.myapplication.ui.today.CurrentWeatherData
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import org.json.JSONObject
-import java.lang.Exception
-import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,7 +27,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private var locationManager: LocationManager? = null
     private var locationListener: LocationListener? = null
-    val API = "afa2b1809a6d5d5aa9ea2f64420da228"
     private val mainActivityViewModel by viewModels<MainActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,23 +44,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private var latitude = 0.0
-    private var longitude = 0.0
-
     private fun initialize() {
         locationManager = this.getSystemService(LOCATION_SERVICE) as LocationManager
         locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                mainActivityViewModel.setLatitude(location.latitude)
-                mainActivityViewModel.setLongitude(location.longitude)
-                //Toast.makeText(applicationContext, "${location.latitude} ${location.latitude}", Toast.LENGTH_SHORT).show()
+                mainActivityViewModel.setLonLat(location.longitude, location.latitude)
                 Log.d("MAIN", "${location.latitude} ${location.longitude}")
-                var mainHandler: Handler = Handler(Looper.getMainLooper())
-                mainHandler.post {
-                    latitude = location.latitude
-                    longitude = location.longitude
-                    //weatherTask().execute()
-                }
             }
         }
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -102,6 +81,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
+    /*
     inner class weatherTask(): AsyncTask<String, Void, String>(){
         override fun doInBackground(vararg params: String?): String? {
             Log.d("MAIN", "doInBackground! 2")
@@ -126,16 +106,6 @@ class MainActivity : AppCompatActivity() {
                     Log.d("MAIN", "OK")
                     val jsonObj = JSONObject(result)
                     val daily = jsonObj.getJSONArray("daily")
-                    val current = jsonObj.getJSONObject("current")
-                    current.let {
-                        mainActivityViewModel.setTodayWeather(CurrentWeatherData(
-                            it.getString("dt").toLong(),
-                            it.getString("temp").toFloat(),
-                            daily.getJSONObject(0).getJSONObject("temp").getString("min").toFloat(),
-                            daily.getJSONObject(0).getJSONObject("temp").getString("max").toFloat(),
-                            it.getJSONArray("weather").getJSONObject(0).getString("description"),
-                        ))
-                    }
                     val weatherList = mutableListOf<WeekWeatherData>()
                     for (i: Int in 1..7) {
                         daily.getJSONObject(i).getJSONObject("temp").let {
@@ -147,7 +117,8 @@ class MainActivity : AppCompatActivity() {
                                 it.getString("eve").toFloat(),
                                 it.getString("night").toFloat(),
                                 daily.getJSONObject(i).getJSONArray("weather").getJSONObject(0).getString("description"),
-                                daily.getJSONObject(i).getString("dt").toLong()
+                                daily.getJSONObject(i).getString("dt").toLong(),
+                                ""
                             ))
                         }
                     }
@@ -160,4 +131,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+     */
 }
