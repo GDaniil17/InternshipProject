@@ -2,11 +2,15 @@ package com.example.myapplication.ui.today
 
 import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -22,13 +26,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class TodayFragment : Fragment() {
-    //TODO use only one call for getting today and week weather cast
     //TODO add search for specific city
     //TODO add loading cycle before showing weather
     //TODO extract weathers into viewModel
 
-    val API = "afa2b1809a6d5d5aa9ea2f64420da228"
-    val city = "Moscow"
+    val API = "7b7ebabc7f47bb63c0d5dc37e076bc8a"
 
     private lateinit var dashboardViewModel: TodayViewModel
     private var _binding: FragmentTodayBinding? = null
@@ -39,6 +41,9 @@ class TodayFragment : Fragment() {
     var descriptionView: TextView? = null
     var day: TextView? = null
     var img: ImageView? = null
+    var progressBar: ProgressBar? = null
+    var infoLayout: LinearLayout? = null
+    private var mainHandler: Handler = Handler(Looper.getMainLooper())
     private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
     private val todayViewModel by activityViewModels<TodayViewModel>()
 
@@ -58,21 +63,38 @@ class TodayFragment : Fragment() {
         descriptionView = root.findViewById(R.id.description)
         day = root.findViewById(R.id.day)
         img = root.findViewById(R.id.weather_img_today)
+        progressBar = root.findViewById(R.id.progressbar_today)
+        infoLayout = root.findViewById(R.id.info_layout)
 
-        mainActivityViewModel.getLonLat().observeForever {
-            weatherTast().execute()
-            Log.d("MAIN", "mainActivityViewModel today ${mainActivityViewModel.getLonLat().value}")
+        if (todayViewModel.getTodayWeather() != null) {
+            mainHandler.post {
+                infoLayout?.visibility = View.VISIBLE
+                progressBar?.visibility = View.GONE
+            }
+            todayViewModel.getTodayWeather()?.let { showWeatherData(it) }
+        } else {
+            mainActivityViewModel.getLonLat().observeForever {
+                if (todayViewModel.getTodayWeather() == null) {
+                    weatherTask().execute()
+                }
+            }
         }
         return root
     }
 
-    inner class weatherTast(): AsyncTask<String, Void, String>(){
+    inner class weatherTask(): AsyncTask<String, Void, String>(){
         override fun doInBackground(vararg params: String?): String? {
-            Log.d("MAIN", "doInBackground")
+            mainHandler.post {
+                infoLayout?.visibility = View.GONE
+                progressBar?.visibility = View.VISIBLE
+            }
             val response = try {
-                URL("https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API}&lang=ru")
+                URL("https://api.openweathermap.org/data/2.5/weather?lat=" +
+                        "${mainActivityViewModel.getLonLat().value?.second}&lon=${mainActivityViewModel.getLonLat().value?.first}" +
+                            "&units=metric&appid=${API}&lang=ru")
                     .readText(Charsets.UTF_8)
             } catch (e: Exception){
+                Log.d("MAIN", "doInBackground "+e.message.toString())
                 null
             }
             return response
@@ -82,7 +104,10 @@ class TodayFragment : Fragment() {
             super.onPostExecute(result)
             result?.let {
                 try {
-                    Log.d("MAIN", "OK")
+                    mainHandler.post {
+                        progressBar?.visibility = View.GONE
+                        infoLayout?.visibility = View.VISIBLE
+                    }
                     val jsonObj = JSONObject(result)
                     val main = jsonObj.getJSONObject("main")
                     val weather = jsonObj.getJSONArray("weather").getJSONObject(0)
@@ -98,7 +123,7 @@ class TodayFragment : Fragment() {
                         temp, tempMin, tempMax, description, pictureLink))
                     todayViewModel.getTodayWeather()?.let { showWeatherData(it) }
                 } catch (e: Exception) {
-                    Log.d("MAIN", e.message.toString())
+                    Log.d("MAIN", "onPostExecute "+e.message.toString())
                 }
             }
         }
