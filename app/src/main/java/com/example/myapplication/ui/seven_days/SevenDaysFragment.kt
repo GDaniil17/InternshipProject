@@ -18,6 +18,7 @@ import com.example.myapplication.R
 import com.example.myapplication.databinding.FragmentSevenDaysBinding
 import com.example.myapplication.ui.MainActivityViewModel
 import com.example.myapplication.ui.today.API
+import kotlinx.android.synthetic.main.fragment_seven_days.view.*
 import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
@@ -39,8 +40,8 @@ class SevenDaysFragment : Fragment() {
     ): View {
         _binding = FragmentSevenDaysBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        progressBar = root.findViewById(R.id.progressbar_week)
-        recyclerView = root.findViewById(R.id.weather_recyclerView)
+        progressBar = root.progressbar_week
+        recyclerView = root.weather_recyclerView
 
         if (sevenDaysViewModel.getWeekWeather().value != null) {
             mainHandler.post {

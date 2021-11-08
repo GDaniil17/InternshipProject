@@ -20,6 +20,7 @@ import com.example.myapplication.ui.today.API
 import com.example.myapplication.ui.today.CurrentWeatherData
 import com.example.myapplication.ui.today.TodayViewModel
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.android.synthetic.main.fragment_search.*
 import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
@@ -30,8 +31,6 @@ class SearchFragment : Fragment() {
     private lateinit var searchViewModel: SearchViewModel
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
-    private var searchBtn: ImageButton? = null
-    private var textInputEditText: TextInputEditText? = null
     private val todayViewModel by activityViewModels<TodayViewModel>()
     private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
     private val searchFragmentViewModel by activityViewModels<SearchViewModel>()
@@ -47,8 +46,6 @@ class SearchFragment : Fragment() {
 
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
         val root = binding.root
-        searchBtn = root.findViewById(R.id.search_btn)
-        textInputEditText = root.findViewById(R.id.textInputEditText)
         if (searchFragmentViewModel.searchValue.isNotBlank()) {
             textInputEditText?.setText(searchFragmentViewModel.searchValue)
         }
@@ -67,7 +64,7 @@ class SearchFragment : Fragment() {
         })
 
 
-        searchBtn?.setOnClickListener {
+        search_btn?.setOnClickListener {
             city = textInputEditText?.text.toString()
             WeatherTaskToday().execute()
         }

@@ -16,15 +16,23 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.myapplication.R
 import com.example.myapplication.databinding.FragmentTodayBinding
 import com.example.myapplication.ui.MainActivityViewModel
+import kotlinx.android.synthetic.main.fragment_today.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 const val API = "acc242807675465120368b3b20bb81d1"
 
@@ -56,15 +64,15 @@ class TodayFragment : Fragment() {
 
         _binding = FragmentTodayBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        currentTemp = root.findViewById(R.id.currentTemp)
-        minTemp = root.findViewById(R.id.minTemp)
-        maxTemp = root.findViewById(R.id.maxTemp)
-        descriptionView = root.findViewById(R.id.description)
-        day = root.findViewById(R.id.day)
-        img = root.findViewById(R.id.weather_img_today)
-        progressBar = root.findViewById(R.id.progressbar_today)
-        infoLayout = root.findViewById(R.id.info_layout)
-        city = root.findViewById(R.id.city)
+        currentTemp = root.currentTemp
+        minTemp = root.minTemp
+        maxTemp = root.maxTemp
+        descriptionView = root.description
+        day = root.day
+        img = root.weather_img_today
+        progressBar = root.progressbar_today
+        infoLayout = root.info_layout
+        city = root.city
 
         if (todayViewModel.getTodayWeather().value != null) {
             mainHandler.post {
