@@ -33,6 +33,21 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        mainActivityViewModel.setLonLat(0.0, 0.0)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        val navView: BottomNavigationView = binding.navView
+
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.navigation_today, R.id.navigation_seven_days, R.id.navigation_search
+            )
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        navView.setupWithNavController(navController)
+
+        /*
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -47,6 +62,8 @@ class MainActivity : AppCompatActivity() {
                 mainActivityViewModel.setLonLat(it.longitude, it.latitude)
             }
         }
+
+         */
     }
 
     private fun initialize() {

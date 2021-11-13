@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_navigation_today_to_navigation_seven_days"
             app:destination="@id/navigation_seven_days" />
+        <action
+            android:id="@+id/action_navigation_today_to_navigation_search3"
+            app:destination="@id/navigation_search" />
     </fragment>
 
     <fragment
@@ -21,13 +24,20 @@
         android:label="@string/_7_days"
         tools:layout="@layout/fragment_seven_days">
         <action
-            android:id="@+id/action_navigation_seven_days_to_navigation_search"
-            app:destination="@id/navigation_search" />
+            android:id="@+id/action_navigation_seven_days_to_navigation_today5"
+            app:destination="@id/navigation_today" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_search"
         android:name="com.example.myapplication.ui.search.SearchFragment"
         android:label="@string/search"
-        tools:layout="@layout/fragment_search" />
+        tools:layout="@layout/fragment_search" >
+        <action
+            android:id="@+id/action_navigation_search_to_navigation_seven_days4"
+            app:destination="@id/navigation_seven_days" />
+        <action
+            android:id="@+id/action_navigation_search_to_navigation_today3"
+            app:destination="@id/navigation_today" />
+    </fragment>
 </navigation>
