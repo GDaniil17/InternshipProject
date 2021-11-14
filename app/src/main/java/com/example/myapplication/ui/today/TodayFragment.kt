@@ -22,6 +22,8 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 import android.graphics.BitmapFactory
+import androidx.fragment.app.activityViewModels
+import com.example.myapplication.ui.MainActivityViewModel
 
 
 const val API = "acc242807675465120368b3b20bb81d1"
@@ -38,9 +40,10 @@ class TodayFragment : Fragment() {
     var city: TextView? = null
     var progressBar: ProgressBar? = null
     var infoLayout: LinearLayout? = null
+    private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
     private var mainHandler: Handler = Handler(Looper.getMainLooper())
-    val job: Job = Job()
-    val scope = CoroutineScope(Dispatchers.Default + job)
+    private val job: Job = Job()
+    private val scope = CoroutineScope(Dispatchers.Default + job)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,15 +67,19 @@ class TodayFragment : Fragment() {
         return root
     }
 
-    fun doWork(): Deferred<String?> = scope.async {
+    private fun doWork(): Deferred<String?> = scope.async {
         mainHandler.post {
             infoLayout?.visibility = View.GONE
             progressBar?.visibility = View.VISIBLE
         }
-
+        var lon = 37.6156
+        var lat = 55.7522
+        mainActivityViewModel.getLonLat().value?.let {
+            lon = it.first
+            lat = it.second
+        }
         val response = try {
-            URL("https://api.openweathermap.org/data/2.5/weather?lat=" +
-                    "0.0&lon=0.0" +
+            URL("https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}" +
                     "&units=metric&appid=${API}&lang=ru")
                 .readText(Charsets.UTF_8)
         } catch (e: Exception){
@@ -82,7 +89,7 @@ class TodayFragment : Fragment() {
         return@async response
     }
 
-    fun getResponse() = scope.launch {
+    private fun getResponse() = scope.launch {
         try {
             val response = doWork().await()
             Log.d("MAIN", "!!! $response")
@@ -117,7 +124,7 @@ class TodayFragment : Fragment() {
         }
     }
 
-    fun getImg(pictureLink: String): Deferred<Bitmap> = scope.async {
+    private fun getImg(pictureLink: String): Deferred<Bitmap> = scope.async {
         val url = URL(pictureLink)
         return@async BitmapFactory.decodeStream(url.openConnection().getInputStream())
     }

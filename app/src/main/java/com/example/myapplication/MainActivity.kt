@@ -20,7 +20,6 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.ui.MainActivityViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 
 class MainActivity : AppCompatActivity() {
 

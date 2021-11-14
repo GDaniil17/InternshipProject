@@ -30,8 +30,8 @@ class SevenDaysFragment : Fragment() {
     private var progressBar: ProgressBar? = null
     private var mainHandler: Handler = Handler(Looper.getMainLooper())
     private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
-    val job: Job = Job()
-    val scope = CoroutineScope(Dispatchers.Default + job)
+    private val job: Job = Job()
+    private val scope = CoroutineScope(Dispatchers.Default + job)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,19 +48,20 @@ class SevenDaysFragment : Fragment() {
         return root
     }
 
-    fun doWork(): Deferred<String?> = scope.async {
+    private fun doWork(): Deferred<String?> = scope.async {
         mainHandler.post {
             progressBar?.visibility = View.VISIBLE
             recyclerView?.visibility = View.GONE
         }
+        var lon = 37.6156
+        var lat = 55.7522
+        mainActivityViewModel.getLonLat().value?.let {
+            lon = it.first
+            lat = it.second
+        }
         val response = try {
-            URL(
-                "https://api.openweathermap.org/data/2.5/onecall?lat=${
-                    mainActivityViewModel
-                        .getLonLat().value?.second
-                }&lon=${mainActivityViewModel.getLonLat().value?.first}" +
-                        "&exclude=hourly,minutely&units=metric&appid=${API}&lang=ru"
-            )
+            URL("https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}" +
+                        "&exclude=hourly,minutely&units=metric&appid=${API}&lang=ru")
                 .readText(Charsets.UTF_8)
         } catch (e: Exception) {
             Log.d("MAIN", "doInBackground " + e.message.toString())
@@ -69,7 +70,7 @@ class SevenDaysFragment : Fragment() {
         return@async response
     }
 
-    fun getResponse() = scope.launch {
+    private fun getResponse() = scope.launch {
         try {
             val response = doWork().await()
             Log.d("MAIN", "!!! $response")
