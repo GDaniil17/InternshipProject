@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -48,7 +49,7 @@ class SevenDaysFragment : Fragment() {
         return root
     }
 
-    private fun doWork(): Deferred<String?> = scope.async {
+    private fun doWorkAsync(): Deferred<String?> = scope.async {
         mainHandler.post {
             progressBar?.visibility = View.VISIBLE
             recyclerView?.visibility = View.GONE
@@ -60,19 +61,23 @@ class SevenDaysFragment : Fragment() {
             lat = it.second
         }
         val response = try {
-            URL("https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}" +
-                        "&exclude=hourly,minutely&units=metric&appid=${API}&lang=ru")
+            URL(
+                "https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}" +
+                        "&exclude=hourly,minutely&units=metric&appid=${API}&lang=ru"
+            )
                 .readText(Charsets.UTF_8)
         } catch (e: Exception) {
+            showMsg("Turn on the Internet")
             Log.d("MAIN", "doInBackground " + e.message.toString())
-            null
+            return@async null
         }
+        showMsg("The request for changing city sent")
         return@async response
     }
 
     private fun getResponse() = scope.launch {
         try {
-            val response = doWork().await()
+            val response = doWorkAsync().await()
             Log.d("MAIN", "!!! $response")
             response?.let {
                 try {
@@ -110,11 +115,21 @@ class SevenDaysFragment : Fragment() {
                     }
                     Log.d("MAIN", "Finished!")
                 } catch (e: Exception) {
-                    Log.d("MAIN", "onPostExecute " + e.message.toString())
+                    showMsg("Something went wrong ${recyclerView}")
+                    Log.d("MAIN", "onPostExecute "+e.message.toString())
                 }
             }
         } catch (e: Exception) {
+            showMsg("Something went wrong")
             Log.d("MAIN", e.message.toString())
+        }
+    }
+
+    private fun showMsg(text: String) {
+        context?.let {
+            mainHandler.post {
+                Toast.makeText(it, text, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

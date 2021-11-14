@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.today
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
@@ -8,10 +10,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.myapplication.databinding.FragmentTodayBinding
 import kotlinx.android.synthetic.main.fragment_today.view.*
@@ -22,8 +20,21 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 import android.graphics.BitmapFactory
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.activityViewModels
+import com.example.myapplication.MainActivity
 import com.example.myapplication.ui.MainActivityViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 
 const val API = "acc242807675465120368b3b20bb81d1"
@@ -40,10 +51,24 @@ class TodayFragment : Fragment() {
     var city: TextView? = null
     var progressBar: ProgressBar? = null
     var infoLayout: LinearLayout? = null
+    var locationBtn: ImageButton? = null
+    private var locationManager: LocationManager? = null
     private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private var mainHandler: Handler = Handler(Looper.getMainLooper())
+    private var locationListener: LocationListener? = null
     private val job: Job = Job()
     private val scope = CoroutineScope(Dispatchers.Default + job)
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                addLocationListener()
+            } else {
+                showMsg("Location denied")
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,19 +83,59 @@ class TodayFragment : Fragment() {
         descriptionView = root.description
         day = root.day
         img = root.weather_img_today
+        city = root.city
         progressBar = root.progressbar_today
         infoLayout = root.info_layout
-        city = root.city
+        locationBtn = root.btn_get_location
 
+        locationBtn?.setOnClickListener {
+            locationBtn?.isClickable = false
+            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+            addLocationListener()
+        }
         Log.d("MAIN", "TodayFragment")
         getResponse()
         return root
     }
 
-    private fun doWork(): Deferred<String?> = scope.async {
+    private fun addLocationListener() {
+        context?.let {
+            if (ContextCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+                locationManager =
+                    it.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
+                locationListener = object : LocationListener {
+                    override fun onLocationChanged(location: Location) {
+                        mainActivityViewModel.setLonLat(
+                            location.longitude,
+                            location.latitude
+                        )
+                        showMsg("The location successfully detected")
+                        Log.d("MAIN", "${location.latitude} ${location.longitude}")
+                        locationListener?.let { locationManager?.removeUpdates(it) }
+                        getResponse()
+                    }
+                }
+                locationListener?.let { listener ->
+                    locationManager?.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER,
+                        0,
+                        0f,
+                        listener
+                    )
+                }
+            } else {
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+    }
+
+    private fun doWorkAsync(): Deferred<String?> = scope.async {
         mainHandler.post {
             infoLayout?.visibility = View.GONE
             progressBar?.visibility = View.VISIBLE
+            locationBtn?.visibility = View.GONE
         }
         var lon = 37.6156
         var lat = 55.7522
@@ -83,15 +148,17 @@ class TodayFragment : Fragment() {
                     "&units=metric&appid=${API}&lang=ru")
                 .readText(Charsets.UTF_8)
         } catch (e: Exception){
+            showMsg("Turn on the Internet")
             Log.d("MAIN", "doInBackground "+e.message.toString())
-            null
+            return@async null
         }
+        showMsg("The request for changing city sent")
         return@async response
     }
 
     private fun getResponse() = scope.launch {
         try {
-            val response = doWork().await()
+            val response = doWorkAsync().await()
             Log.d("MAIN", "!!! $response")
             response?.let {
                 try {
@@ -116,10 +183,12 @@ class TodayFragment : Fragment() {
 
                     Log.d("MAIN", "Finished!")
                 } catch (e: Exception) {
+                    showMsg("Something went wrong")
                     Log.d("MAIN", "onPostExecute "+e.message.toString())
                 }
             }
         } catch (e: Exception) {
+            showMsg("Something went wrong")
             Log.d("MAIN", e.message.toString())
         }
     }
@@ -142,10 +211,19 @@ class TodayFragment : Fragment() {
             img?.setImageBitmap(imgResponse)
             infoLayout?.visibility = View.VISIBLE
             progressBar?.visibility = View.GONE
+            locationBtn?.visibility = View.VISIBLE
         }
 
         Log.d("MAIN", "RETURN")
         return@launch
+    }
+
+    private fun showMsg(text: String) {
+        context?.let {
+            mainHandler.post {
+                Toast.makeText(it, text, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     override fun onDestroyView() {

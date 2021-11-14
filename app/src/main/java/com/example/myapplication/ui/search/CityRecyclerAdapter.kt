@@ -26,7 +26,7 @@ class CityRecyclerAdapter(private val items: List<String>, private val setSearch
         holder.cityName.setOnClickListener {
             Log.d("MAIN", items[position])
             setSearchText(items[position])
-            Toast.makeText(holder.itemView.context, "You chose ${items[position].uppercase()}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(holder.itemView.context, "Click search button to get city forecast", Toast.LENGTH_SHORT).show()
         }
     }
 

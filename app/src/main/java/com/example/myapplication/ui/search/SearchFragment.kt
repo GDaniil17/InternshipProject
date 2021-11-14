@@ -1,10 +1,14 @@
 package com.example.myapplication.ui.search
 
+import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,9 +26,10 @@ import java.util.*
 class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
-    val job: Job = Job()
+    private val job: Job = Job()
+    private var mainHandler: Handler = Handler(Looper.getMainLooper())
     private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
-    val scope = CoroutineScope(Dispatchers.Default + job)
+    private val scope = CoroutineScope(Dispatchers.Default + job)
     private val cities = listOf("abakan", "almetyevsk", "anadyr", "anapa", "arkhangelsk", "astrakhan", "barnaul", "belgorod", "beslan", "birobidzhan", "biysk", "blagoveshchensk", "bologoye", "bryansk", "chebarkul", "cheboksary", "chelyabinsk", "cherepovets", "cherkessk", "chistopol", "chita", "dmitrov", "dubna", "dzerzhinsk", "elista", "engels", "gatchina", "gdov", "gelendzhik", "gorno-altaysk", "grozny", "gudermes", "gus-khrustalny", "irkutsk", "ivanovo", "izhevsk", "kaliningrad", "kaluga", "kazan", "kemerovo", "khabarovsk", "khanty-mansiysk", "kislovodsk", "komsomolsk-on-amur", "kotlas", "krasnodar", "krasnoyarsk", "kurgan", "kursk", "kyzyl", "leninogorsk", "lensk", "lipetsk", "luga", "lyuban", "lyubertsy", "magadan", "makhachkala", "maykop", "miass", "mineralnye vody", "mirny", "moscow", "murmansk", "murom", "mytishchi", "naberezhnye chelny", "nadym", "nakhodka", "nalchik", "naryan-mar", "nazran", "nizhnekamsk", "nizhnevartovsk", "nizhny novgorod", "nizhny tagil", "norilsk", "novokuznetsk", "novosibirsk", "novy urengoy", "obninsk", "oktyabrsky", "omsk", "orekhovo-zuyevo", "orenburg", "oryol", "penza", "perm", "petropavlovsk-kamchatsky", "petrozavodsk", "podolsk", "pskov", "pyatigorsk", "rostov-on-don", "ryazan", "rybinsk", "saint petersburg", "salekhard", "samara", "saransk", "saratov", "severodvinsk", "shadrinsk", "shatura", "shuya", "smolensk", "sochi", "sol-iletsk", "stavropol", "surgut", "syktyvkar", "tambov", "tobolsk", "tolyatti", "tomsk", "tuapse", "tula", "tver", "tynda", "tyumen", "ufa", "ulan-ude", "ulyanovsk", "veliky novgorod", "veliky ustyug", "vladikavkaz", "vladimir", "vladivostok", "volgograd", "vologda", "vorkuta", "voronezh", "yakutsk", "yaroslavl", "yekaterinburg", "yelabuga", "yelets", "yessentuki", "yeysk", "yoshkar-ola", "yuzhno-sakhalinsk", "zlatoust")
 
     override fun onCreateView(
@@ -56,28 +61,33 @@ class SearchFragment : Fragment() {
             }
         })
         root.search_btn.setOnClickListener {
-            getResponse(searchView.text.toString())
+            if (searchView.text?.isNotBlank() == true) {
+                getResponse(searchView.text.toString())
+            }
         }
         return binding.root
     }
 
-    fun doWork(city: String): Deferred<String?> = scope.async {
+    private fun doWorkAsync(city: String): Deferred<String?> = scope.async {
         val response = try {
             URL("https://api.openweathermap.org/data/2.5/weather?q=$city" +
                     "&units=metric&appid=$API&lang=ru")
                 .readText(Charsets.UTF_8)
         } catch (e: Exception){
+            showMsg("Turn on the Internet")
             Log.d("MAIN", "doInBackground "+e.message.toString())
-            null
+            return@async null
         }
+        showMsg("The request for changing city sent")
         return@async response
     }
 
-    fun getResponse(city: String) = scope.launch {
+    private fun getResponse(city: String) = scope.launch {
         try {
-            val response = doWork(city).await()
+            val response = doWorkAsync(city).await()
             Log.d("MAIN", "!!! $response")
             response?.let {
+                showMsg("$city was found")
                 try {
                     val jsonObj = JSONObject(response)
                     val coord = jsonObj.getJSONObject("coord")
@@ -86,11 +96,21 @@ class SearchFragment : Fragment() {
                     mainActivityViewModel.setLonLat(lon.toDouble(), lat.toDouble())
                     Log.d("MAIN", "Finished!")
                 } catch (e: Exception) {
+                    showMsg("Something went wrong")
                     Log.d("MAIN", "onPostExecute "+e.message.toString())
                 }
             }
         } catch (e: Exception) {
+            showMsg("Something went wrong")
             Log.d("MAIN", e.message.toString())
+        }
+    }
+
+    private fun showMsg(text: String) {
+        context?.let {
+            mainHandler.post {
+                Toast.makeText(it, text, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
