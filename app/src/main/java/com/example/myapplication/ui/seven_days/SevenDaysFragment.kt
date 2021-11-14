@@ -71,7 +71,6 @@ class SevenDaysFragment : Fragment() {
             Log.d("MAIN", "doInBackground " + e.message.toString())
             return@async null
         }
-        showMsg("The request for changing city sent")
         return@async response
     }
 
@@ -115,7 +114,7 @@ class SevenDaysFragment : Fragment() {
                     }
                     Log.d("MAIN", "Finished!")
                 } catch (e: Exception) {
-                    showMsg("Something went wrong ${recyclerView}")
+                    showMsg("Something went wrong")
                     Log.d("MAIN", "onPostExecute "+e.message.toString())
                 }
             }

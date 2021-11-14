@@ -93,8 +93,11 @@ class TodayFragment : Fragment() {
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
             addLocationListener()
         }
-        Log.d("MAIN", "TodayFragment")
         getResponse()
+        mainActivityViewModel.getLonLat().observeForever {
+            getResponse()
+        }
+        Log.d("MAIN", "TodayFragment")
         return root
     }
 
@@ -105,25 +108,25 @@ class TodayFragment : Fragment() {
 
                 locationManager =
                     it.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
-                locationListener = object : LocationListener {
-                    override fun onLocationChanged(location: Location) {
-                        mainActivityViewModel.setLonLat(
-                            location.longitude,
-                            location.latitude
-                        )
-                        showMsg("The location successfully detected")
-                        Log.d("MAIN", "${location.latitude} ${location.longitude}")
-                        locationListener?.let { locationManager?.removeUpdates(it) }
-                        getResponse()
+                if (locationManager == null || (locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == false)) {
+                    showMsg("Turn on location and try again")
+                } else {
+                    locationListener = object : LocationListener {
+                        override fun onLocationChanged(location: Location) {
+                            mainActivityViewModel.setLonLat(location.longitude, location.latitude)
+                            showMsg("The location successfully detected")
+                            Log.d("MAIN", "${location.latitude} ${location.longitude}")
+                            locationListener?.let { locationManager?.removeUpdates(it) }
+                        }
                     }
-                }
-                locationListener?.let { listener ->
-                    locationManager?.requestLocationUpdates(
-                        LocationManager.NETWORK_PROVIDER,
-                        0,
-                        0f,
-                        listener
-                    )
+                    locationListener?.let { listener ->
+                        locationManager?.requestLocationUpdates(
+                            LocationManager.NETWORK_PROVIDER,
+                            0,
+                            0f,
+                            listener
+                        )
+                    }
                 }
             } else {
                 requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -152,7 +155,6 @@ class TodayFragment : Fragment() {
             Log.d("MAIN", "doInBackground "+e.message.toString())
             return@async null
         }
-        showMsg("The request for changing city sent")
         return@async response
     }
 
@@ -199,21 +201,19 @@ class TodayFragment : Fragment() {
     }
 
     private fun showWeatherData(newWeatherData: CurrentWeatherData) = scope.launch {
-        descriptionView?.text = newWeatherData.description
-        currentTemp?.text = newWeatherData.temp
-        minTemp?.text = newWeatherData.min
-        maxTemp?.text = newWeatherData.max
-        day?.text = newWeatherData.day
-        city?.text = newWeatherData.city
-
         val imgResponse = getImg(newWeatherData.pictureLink).await()
         mainHandler.post {
+            descriptionView?.text = newWeatherData.description
+            currentTemp?.text = newWeatherData.temp
+            minTemp?.text = newWeatherData.min
+            maxTemp?.text = newWeatherData.max
+            day?.text = newWeatherData.day
+            city?.text = newWeatherData.city
             img?.setImageBitmap(imgResponse)
             infoLayout?.visibility = View.VISIBLE
             progressBar?.visibility = View.GONE
             locationBtn?.visibility = View.VISIBLE
         }
-
         Log.d("MAIN", "RETURN")
         return@launch
     }
