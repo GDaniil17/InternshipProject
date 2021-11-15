@@ -13,9 +13,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.myapplication.R
 import com.example.myapplication.databinding.FragmentSevenDaysBinding
 import com.example.myapplication.ui.MainActivityViewModel
+import com.example.myapplication.ui.seven_days.response.WeekResponse
 import com.example.myapplication.ui.today.API
+import com.example.myapplication.ui.today.response.Response
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.fragment_seven_days.view.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -84,30 +88,24 @@ class SevenDaysFragment : Fragment() {
                         recyclerView?.visibility = View.VISIBLE
                         progressBar?.visibility = View.GONE
                     }
-                    val jsonObj = JSONObject(response)
-                    val daily = jsonObj.getJSONArray("daily")
                     val weatherList = mutableListOf<WeekWeatherData>()
+                    val data = Gson().fromJson(response, WeekResponse::class.java)
+                    Log.d("MAIN", "${data}!")
                     for (i: Int in 1..7) {
-                        daily.getJSONObject(i).getJSONObject("temp").let {
-                            weatherList.add(
-                                WeekWeatherData(
-                                    it.getString("min").toFloat(),
-                                    it.getString("max").toFloat(),
-                                    it.getString("morn").toFloat(),
-                                    it.getString("day").toFloat(),
-                                    it.getString("eve").toFloat(),
-                                    it.getString("night").toFloat(),
-                                    daily.getJSONObject(i).getJSONArray("weather").getJSONObject(0)
-                                        .getString("description"),
-                                    daily.getJSONObject(i).getString("dt").toLong(),
-                                    "http://openweathermap.org/img/wn/${
-                                        daily.getJSONObject(i).getJSONArray("weather")
-                                            .getJSONObject(0).getString("icon")
-                                    }@2x.png"
-                                )
-                            )
+                        data.daily[i].temp.apply {
+                            weatherList.add(WeekWeatherData(
+                                min,
+                                max,
+                                morn,
+                                day,
+                                eve,
+                                night,
+                                data.daily[i].weather[0].description,
+                                data.daily[i].dt,
+                                "http://openweathermap.org/img/wn/${data.daily[i].weather[0].icon}@2x.png"))
                         }
                     }
+
                     recyclerView?.let {
                         it.layoutManager = LinearLayoutManager(context)
                         it.adapter = RecyclerAdapter(weatherList)

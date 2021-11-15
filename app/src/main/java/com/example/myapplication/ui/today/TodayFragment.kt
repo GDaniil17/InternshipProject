@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment
 import com.example.myapplication.databinding.FragmentTodayBinding
 import kotlinx.android.synthetic.main.fragment_today.view.*
 import kotlinx.coroutines.*
-import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -24,17 +23,15 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.widget.*
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.activityViewModels
-import com.example.myapplication.MainActivity
 import com.example.myapplication.ui.MainActivityViewModel
+import com.example.myapplication.ui.today.response.Response
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.gson.Gson
 
 
 const val API = "acc242807675465120368b3b20bb81d1"
@@ -66,6 +63,7 @@ class TodayFragment : Fragment() {
             if (isGranted) {
                 addLocationListener()
             } else {
+                locationBtn?.isClickable = true
                 showMsg("Location denied")
             }
         }
@@ -110,6 +108,7 @@ class TodayFragment : Fragment() {
                     it.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
                 if (locationManager == null || (locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == false)) {
                     showMsg("Turn on location and try again")
+                    locationBtn?.isClickable = true
                 } else {
                     locationListener = object : LocationListener {
                         override fun onLocationChanged(location: Location) {
@@ -164,21 +163,17 @@ class TodayFragment : Fragment() {
             Log.d("MAIN", "!!! $response")
             response?.let {
                 try {
-                    val jsonObj = JSONObject(response)
-                    val main = jsonObj.getJSONObject("main")
-                    val city = jsonObj.getString("name")
-                    val coord = jsonObj.getJSONObject("coord")
-                    val lon = coord.getString("lon")
-                    val lat = coord.getString("lat")
-                    val weather = jsonObj.getJSONArray("weather").getJSONObject(0)
-                    val description = weather.getString("description")
-                    val temp = "Now: "+main.getString("temp")+"°С"
-                    val tempMin = "Min: "+main.getString("temp_min")+"°С"
-                    val tempMax = "Max: "+main.getString("temp_max")+"°С"
-                    val pictureLink = "http://openweathermap.org/img/wn/${weather.getString("icon")}@2x.png"
+                    val data = Gson().fromJson(response, Response::class.java)
+                    val city = data.name
+                    val lon = data.coord.lon.toString()
+                    val lat = data.coord.lat.toString()
+                    val description = data.weather[0].description
+                    val temp = "Now: "+data.main.temp
+                    val tempMin = "Min: "+data.main.tempMin
+                    val tempMax = "Max: "+data.main.tempMax
+                    val pictureLink = "http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png"
                     val sdf = SimpleDateFormat("dd/MM/yyyy")
-                    val netDate = Date(jsonObj.getString("dt").toLong() * 1000)
-
+                    val netDate = Date(data.dt.toLong()*1000)
                     val currentWeatherData = CurrentWeatherData(sdf.format(netDate), temp, tempMin, tempMax,
                         description, pictureLink, lon, lat, city)
                     showWeatherData(currentWeatherData)

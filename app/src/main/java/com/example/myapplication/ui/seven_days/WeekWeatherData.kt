@@ -1,13 +1,13 @@
 package com.example.myapplication.ui.seven_days
 
 data class WeekWeatherData(
-    val minTemp: Float,
-    val maxTemp: Float,
-    val morningTemp: Float,
-    val dayTemp: Float,
-    val eveningTemp: Float,
-    val nightTemp: Float,
+    val minTemp: Double,
+    val maxTemp: Double,
+    val morningTemp: Double,
+    val dayTemp: Double,
+    val eveningTemp: Double,
+    val nightTemp: Double,
     val description: String,
-    val day: Long,
+    val day: Int,
     val img: String
 )

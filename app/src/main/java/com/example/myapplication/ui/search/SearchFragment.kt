@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.search
 
-import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,10 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentSearchBinding
 import com.example.myapplication.ui.MainActivityViewModel
 import com.example.myapplication.ui.today.API
+import com.example.myapplication.ui.today.response.Response
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.fragment_search.*
 import kotlinx.android.synthetic.main.fragment_search.view.*
 import kotlinx.coroutines.*
-import org.json.JSONObject
 import java.lang.Exception
 import java.net.URL
 import java.util.*
@@ -74,7 +74,7 @@ class SearchFragment : Fragment() {
                     "&units=metric&appid=$API&lang=ru")
                 .readText(Charsets.UTF_8)
         } catch (e: Exception){
-            showMsg("Turn on the Internet")
+            showMsg("Please check the city name and Internet connection")
             Log.d("MAIN", "doInBackground "+e.message.toString())
             return@async null
         }
@@ -89,11 +89,10 @@ class SearchFragment : Fragment() {
             response?.let {
                 showMsg("$city was found")
                 try {
-                    val jsonObj = JSONObject(response)
-                    val coord = jsonObj.getJSONObject("coord")
-                    val lon = coord.getString("lon")
-                    val lat = coord.getString("lat")
-                    mainActivityViewModel.setLonLat(lon.toDouble(), lat.toDouble())
+                    val data = Gson().fromJson(response, Response::class.java)
+                    val lon = data.coord.lon
+                    val lat = data.coord.lat
+                    mainActivityViewModel.setLonLat(lon, lat)
                     Log.d("MAIN", "Finished!")
                 } catch (e: Exception) {
                     showMsg("Something went wrong")

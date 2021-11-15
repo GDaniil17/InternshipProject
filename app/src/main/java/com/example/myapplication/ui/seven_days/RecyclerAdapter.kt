@@ -44,7 +44,7 @@ class RecyclerAdapter(private val items: MutableList<WeekWeatherData>): Recycler
             holder.description.text = it.description
             Glide.with(holder.itemView.context).load(it.img).into(holder.weatherImg)
             val sdf = SimpleDateFormat("dd/MM/yyyy")
-            val netDate = Date(it.day * 1000)
+            val netDate = Date(it.day.toLong() * 1000)
             holder.day.text = sdf.format(netDate)
         }
     }
