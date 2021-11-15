@@ -20,6 +20,7 @@ import com.example.myapplication.ui.seven_days.response.WeekResponse
 import com.example.myapplication.ui.today.API
 import com.example.myapplication.ui.today.response.Response
 import com.google.gson.Gson
+import kotlinx.android.synthetic.main.fragment_seven_days.*
 import kotlinx.android.synthetic.main.fragment_seven_days.view.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -47,9 +48,13 @@ class SevenDaysFragment : Fragment() {
         val root: View = binding.root
         progressBar = root.progressbar_week
         recyclerView = root.weather_recyclerView
-
+        recyclerView?.let {
+            it.layoutManager = LinearLayoutManager(context)
+            it.adapter = RecyclerAdapter(mutableListOf(WeekWeatherData(1.0, 2.0, 3.0,4.0,5.0,6.0, "ABCD", 1234, "0c")))
+        }
         Log.d("MAIN", "SevenDaysFragment")
         getResponse()
+
         return root
     }
 
@@ -68,8 +73,7 @@ class SevenDaysFragment : Fragment() {
             URL(
                 "https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}" +
                         "&exclude=hourly,minutely&units=metric&appid=${API}&lang=ru"
-            )
-                .readText(Charsets.UTF_8)
+            ).readText(Charsets.UTF_8)
         } catch (e: Exception) {
             showMsg("Turn on the Internet")
             Log.d("MAIN", "doInBackground " + e.message.toString())
@@ -84,10 +88,6 @@ class SevenDaysFragment : Fragment() {
             Log.d("MAIN", "!!! $response")
             response?.let {
                 try {
-                    mainHandler.post {
-                        recyclerView?.visibility = View.VISIBLE
-                        progressBar?.visibility = View.GONE
-                    }
                     val weatherList = mutableListOf<WeekWeatherData>()
                     val data = Gson().fromJson(response, WeekResponse::class.java)
                     Log.d("MAIN", "${data}!")
@@ -105,10 +105,10 @@ class SevenDaysFragment : Fragment() {
                                 "http://openweathermap.org/img/wn/${data.daily[i].weather[0].icon}@2x.png"))
                         }
                     }
-
-                    recyclerView?.let {
-                        it.layoutManager = LinearLayoutManager(context)
-                        it.adapter = RecyclerAdapter(weatherList)
+                    mainHandler.post {
+                        recyclerView?.adapter = RecyclerAdapter(weatherList)
+                        recyclerView?.visibility = View.VISIBLE
+                        progressBar?.visibility = View.GONE
                     }
                     Log.d("MAIN", "Finished!")
                 } catch (e: Exception) {
